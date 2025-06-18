@@ -400,6 +400,11 @@ setup_configurations() {
         print_success "Kitty configuration copied"
     fi
     
+    if [[ -f "$SCRIPT_DIR/configs/wallpaper.svg" ]]; then
+        cp "$SCRIPT_DIR/configs/wallpaper.svg" "$HOME/.config/hypr/"
+        print_success "Wallpaper copied"
+    fi
+    
     print_success "Configuration files setup completed"
 }
 

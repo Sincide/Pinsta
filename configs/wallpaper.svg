@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1920" height="1080" viewBox="0 0 1920 1080" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e1e2e;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#313244;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#181825;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#74c7ec;stop-opacity:0.8" />
+      <stop offset="50%" style="stop-color:#89b4fa;stop-opacity:0.6" />
+      <stop offset="100%" style="stop-color:#b4befe;stop-opacity:0.4" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="1920" height="1080" fill="url(#bg)"/>
+  
+  <!-- Geometric shapes -->
+  <circle cx="300" cy="200" r="100" fill="url(#accent)" opacity="0.3"/>
+  <circle cx="1600" cy="300" r="150" fill="url(#accent)" opacity="0.2"/>
+  <circle cx="800" cy="800" r="80" fill="url(#accent)" opacity="0.4"/>
+  <circle cx="1200" cy="700" r="120" fill="url(#accent)" opacity="0.25"/>
+  
+  <!-- Subtle lines -->
+  <line x1="0" y1="540" x2="1920" y2="540" stroke="url(#accent)" stroke-width="2" opacity="0.1"/>
+  <line x1="960" y1="0" x2="960" y2="1080" stroke="url(#accent)" stroke-width="2" opacity="0.1"/>
+  
+  <!-- Arch Linux logo inspired element -->
+  <g transform="translate(960,540)">
+    <path d="M -60,-80 L 0,-200 L 60,-80 L 40,-60 L 20,-80 L -20,-80 L -40,-60 Z" 
+          fill="url(#accent)" opacity="0.6"/>
+    <circle cx="0" cy="-140" r="8" fill="#89b4fa"/>
+  </g>
+  
+  <!-- Hyprland text -->
+  <text x="960" y="650" font-family="Arial, sans-serif" font-size="48" font-weight="bold" 
+        text-anchor="middle" fill="#cdd6f4" opacity="0.8">Hyprland</text>
+  <text x="960" y="690" font-family="Arial, sans-serif" font-size="24" 
+        text-anchor="middle" fill="#a6adc8" opacity="0.6">Dynamic Tiling Wayland Compositor</text>
+</svg>
