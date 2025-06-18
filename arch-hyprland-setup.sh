@@ -4,7 +4,8 @@
 # Author: Auto-generated setup script
 # Description: Interactive script to setup Hyprland desktop environment
 
-set -e
+# Remove set -e to handle errors manually
+# set -e
 
 # Color definitions
 RED='\033[0;31m'
@@ -130,19 +131,9 @@ show_progress() {
     local total=$2
     local description=$3
     local percentage=$((current * 100 / total))
-    local completed=$((percentage / 2))
-    local remaining=$((50 - completed))
     
-    printf "\r${CYAN}[${NC}"
-    if command -v seq &> /dev/null; then
-        printf "%0.s█" $(seq 1 $completed)
-        printf "%0.s─" $(seq 1 $remaining)
-    else
-        # Fallback for systems without seq
-        for ((i=1; i<=completed; i++)); do printf "█"; done
-        for ((i=1; i<=remaining; i++)); do printf "─"; done
-    fi
-    printf "${CYAN}] ${WHITE}%d%% ${YELLOW}%s${NC}" $percentage "$description"
+    # Simpler progress display
+    printf "\r${CYAN}[${current}/${total}] ${WHITE}%d%% ${YELLOW}%s${NC}" $percentage "$description"
 }
 
 # System compatibility check
@@ -228,16 +219,24 @@ install_essential_packages() {
     
     local total=${#ESSENTIAL_PACKAGES[@]}
     local current=0
+    local failed_packages=()
     
     for package in "${ESSENTIAL_PACKAGES[@]}"; do
         ((current++))
         show_progress $current $total "Installing $package"
-        install_package "$package"
-        sleep 0.5
+        if ! install_package "$package"; then
+            failed_packages+=("$package")
+        fi
+        sleep 0.2
     done
     
     echo
+    if [[ ${#failed_packages[@]} -gt 0 ]]; then
+        print_warning "Some packages failed to install: ${failed_packages[*]}"
+        print_info "Continuing with installation..."
+    fi
     print_success "Essential packages installation completed"
+    return 0
 }
 
 # Install yay AUR helper
@@ -273,16 +272,24 @@ install_hyprland_packages() {
     
     local total=${#HYPRLAND_PACKAGES[@]}
     local current=0
+    local failed_packages=()
     
     for package in "${HYPRLAND_PACKAGES[@]}"; do
         ((current++))
         show_progress $current $total "Installing $package"
-        install_package "$package"
-        sleep 0.5
+        if ! install_package "$package"; then
+            failed_packages+=("$package")
+        fi
+        sleep 0.2
     done
     
     echo
+    if [[ ${#failed_packages[@]} -gt 0 ]]; then
+        print_warning "Some packages failed to install: ${failed_packages[*]}"
+        print_info "Continuing with installation..."
+    fi
     print_success "Hyprland packages installation completed"
+    return 0
 }
 
 # Install AUR packages
@@ -296,16 +303,24 @@ install_aur_packages() {
     
     local total=${#AUR_PACKAGES[@]}
     local current=0
+    local failed_packages=()
     
     for package in "${AUR_PACKAGES[@]}"; do
         ((current++))
         show_progress $current $total "Installing $package"
-        install_package "$package" "yay"
-        sleep 0.5
+        if ! install_package "$package" "yay"; then
+            failed_packages+=("$package")
+        fi
+        sleep 0.2
     done
     
     echo
+    if [[ ${#failed_packages[@]} -gt 0 ]]; then
+        print_warning "Some AUR packages failed to install: ${failed_packages[*]}"
+        print_info "Continuing with installation..."
+    fi
     print_success "AUR packages installation completed"
+    return 0
 }
 
 # Setup configuration files
@@ -411,14 +426,56 @@ full_installation() {
     echo -e "${YELLOW}Starting full installation...${NC}"
     echo
     
-    check_system_compatibility
-    update_system
-    install_essential_packages
-    install_yay
-    install_hyprland_packages
-    install_aur_packages
-    setup_configurations
-    enable_services
+    # Run each step and check for errors
+    print_info "Starting system compatibility check..."
+    if ! check_system_compatibility; then
+        print_error "System compatibility check failed"
+        read -p "Press Enter to return to menu..."
+        return 1
+    fi
+    print_info "System compatibility check completed successfully"
+    
+    if ! update_system; then
+        print_error "System update failed"
+        read -p "Press Enter to return to menu..."
+        return 1
+    fi
+    
+    if ! install_essential_packages; then
+        print_error "Essential packages installation failed"
+        read -p "Press Enter to return to menu..."
+        return 1
+    fi
+    
+    if ! install_yay; then
+        print_error "yay installation failed"
+        read -p "Press Enter to return to menu..."
+        return 1
+    fi
+    
+    if ! install_hyprland_packages; then
+        print_error "Hyprland packages installation failed"
+        read -p "Press Enter to return to menu..."
+        return 1
+    fi
+    
+    if ! install_aur_packages; then
+        print_error "AUR packages installation failed"
+        read -p "Press Enter to return to menu..."
+        return 1
+    fi
+    
+    if ! setup_configurations; then
+        print_error "Configuration setup failed"
+        read -p "Press Enter to return to menu..."
+        return 1
+    fi
+    
+    if ! enable_services; then
+        print_error "Service enablement failed"
+        read -p "Press Enter to return to menu..."
+        return 1
+    fi
     
     print_header
     echo -e "${GREEN}${CHECK_MARK} Full installation completed successfully!${NC}"
