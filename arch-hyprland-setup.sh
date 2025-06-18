@@ -36,6 +36,7 @@ ESSENTIAL_PACKAGES=(
     "unzip"
     "nano"
     "vim"
+    "fish"
     "polkit-gnome"
     "xdg-desktop-portal-hyprland"
     "xdg-desktop-portal-gtk"
@@ -329,6 +330,7 @@ setup_configurations() {
     mkdir -p "$HOME/.config/hypr"
     mkdir -p "$HOME/.config/waybar"
     mkdir -p "$HOME/.config/kitty"
+    mkdir -p "$HOME/.config/fish/functions"
     
     # Copy configuration files if they exist in the script directory
     if [[ -f "$SCRIPT_DIR/configs/hyprland.conf" ]]; then
@@ -356,7 +358,51 @@ setup_configurations() {
         print_success "Wallpaper copied"
     fi
     
+    # Setup Fish shell configuration
+    if [[ -f "$SCRIPT_DIR/configs/fish-config.fish" ]]; then
+        cp "$SCRIPT_DIR/configs/fish-config.fish" "$HOME/.config/fish/config.fish"
+        print_success "Fish configuration copied"
+    fi
+    
+    if [[ -f "$SCRIPT_DIR/configs/fish-aliases.fish" ]]; then
+        # Add aliases to config.fish
+        echo "" >> "$HOME/.config/fish/config.fish"
+        echo "# Load aliases" >> "$HOME/.config/fish/config.fish"
+        cat "$SCRIPT_DIR/configs/fish-aliases.fish" >> "$HOME/.config/fish/config.fish"
+        print_success "Fish aliases added"
+    fi
+    
+    if [[ -f "$SCRIPT_DIR/configs/fish-prompt.fish" ]]; then
+        cp "$SCRIPT_DIR/configs/fish-prompt.fish" "$HOME/.config/fish/functions/fish_prompt.fish"
+        # Extract other functions from the prompt file
+        sed -n '/function fish_right_prompt/,/^end$/p' "$SCRIPT_DIR/configs/fish-prompt.fish" > "$HOME/.config/fish/functions/fish_right_prompt.fish"
+        sed -n '/function fish_mode_prompt/,/^end$/p' "$SCRIPT_DIR/configs/fish-prompt.fish" > "$HOME/.config/fish/functions/fish_mode_prompt.fish"
+        print_success "Fish prompt functions setup"
+    fi
+    
     print_success "Configuration files setup completed"
+}
+
+# Set fish as default shell
+setup_fish_shell() {
+    print_step "Setting up Fish shell as default..."
+    
+    # Check if fish is in /etc/shells
+    if ! grep -q "/usr/bin/fish" /etc/shells; then
+        echo "/usr/bin/fish" | sudo tee -a /etc/shells > /dev/null
+        print_success "Fish added to /etc/shells"
+    else
+        print_info "Fish already in /etc/shells"
+    fi
+    
+    # Change default shell to fish
+    if [[ "$SHELL" != "/usr/bin/fish" ]]; then
+        chsh -s /usr/bin/fish
+        print_success "Default shell changed to Fish"
+        print_info "You'll need to log out and back in for the shell change to take effect"
+    else
+        print_info "Fish is already the default shell"
+    fi
 }
 
 # Enable services
@@ -471,6 +517,12 @@ full_installation() {
     
     if ! enable_services; then
         print_error "Service enablement failed"
+        read -p "Press Enter to return to menu..."
+        return 1
+    fi
+    
+    if ! setup_fish_shell; then
+        print_error "Fish shell setup failed"
         read -p "Press Enter to return to menu..."
         return 1
     fi
