@@ -66,8 +66,6 @@ HYPRLAND_PACKAGES=(
     "mako"
     "swww"
     "hyprpaper"
-    "swaylock-effects"
-    "wlogout"
     "xdg-utils"
 )
 
