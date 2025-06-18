@@ -1,0 +1,39 @@
+modules = ["nodejs-20"]
+
+[nix]
+channel = "stable-24_05"
+
+[workflows]
+runButton = "Project"
+
+[[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Hyprland Setup Script"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "main"
+
+[[workflows.workflow]]
+name = "Hyprland Setup Script"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "bash arch-hyprland-setup.sh"
+
+[[workflows.workflow]]
+name = "main"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "bash arch-hyprland-setup.sh"
+
+[deployment]
+run = ["sh", "-c", "bash arch-hyprland-setup.sh"]
