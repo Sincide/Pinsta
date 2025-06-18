@@ -531,10 +531,11 @@ full_installation() {
     echo -e "${GREEN}${CHECK_MARK} Full installation completed successfully!${NC}"
     echo
     echo -e "${CYAN}Next steps:${NC}"
-    echo -e "${WHITE}1.${NC} Reboot your system"
-    echo -e "${WHITE}2.${NC} Select Hyprland from your display manager"
-    echo -e "${WHITE}3.${NC} Use Super+Return to open terminal (Kitty)"
-    echo -e "${WHITE}4.${NC} Use Super+D to open application launcher (Wofi)"
+    echo -e "${WHITE}1.${NC} Log out and back in for Fish shell to take effect"
+    echo -e "${WHITE}2.${NC} Reboot your system"
+    echo -e "${WHITE}3.${NC} Select Hyprland from your display manager"
+    echo -e "${WHITE}4.${NC} Use Super+Return to open terminal (Kitty with Fish shell)"
+    echo -e "${WHITE}5.${NC} Use Super+D to open application launcher (Wofi)"
     echo
     read -p "Press Enter to exit..."
 }
@@ -551,6 +552,7 @@ custom_installation() {
     read -p "$(echo -e "${CYAN}Install Hyprland packages? [Y/n]: ${NC}")" install_hypr
     read -p "$(echo -e "${CYAN}Install AUR packages? [Y/n]: ${NC}")" install_aur
     read -p "$(echo -e "${CYAN}Setup configuration files? [Y/n]: ${NC}")" setup_configs
+    read -p "$(echo -e "${CYAN}Set Fish as default shell? [Y/n]: ${NC}")" setup_fish
     
     print_header
     echo -e "${YELLOW}Starting custom installation...${NC}"
@@ -566,6 +568,7 @@ custom_installation() {
     [[ ${setup_configs,,} != "n" ]] && setup_configurations
     
     enable_services
+    [[ ${setup_fish,,} != "n" ]] && setup_fish_shell
     
     print_header
     echo -e "${GREEN}${CHECK_MARK} Custom installation completed!${NC}"
