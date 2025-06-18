@@ -32,6 +32,9 @@ ESSENTIAL_PACKAGES=(
     "git"
     "wget"
     "curl"
+    "unzip"
+    "nano"
+    "vim"
     "polkit-gnome"
     "xdg-desktop-portal-hyprland"
     "xdg-desktop-portal-gtk"
@@ -47,6 +50,11 @@ ESSENTIAL_PACKAGES=(
     "brightnessctl"
     "playerctl"
     "pamixer"
+    "network-manager-applet"
+    "bluez"
+    "bluez-utils"
+    "firefox"
+    "file-roller"
 )
 
 HYPRLAND_PACKAGES=(
@@ -57,14 +65,20 @@ HYPRLAND_PACKAGES=(
     "mako"
     "swww"
     "hyprpaper"
+    "swaylock-effects"
+    "wlogout"
+    "xdg-utils"
 )
 
 AUR_PACKAGES=(
-    "yay-bin"
     "brave-bin"
     "visual-studio-code-bin"
     "discord"
     "spotify"
+    "ttf-jetbrains-mono"
+    "noto-fonts-emoji"
+    "thunar"
+    "pavucontrol"
 )
 
 # Logging function
@@ -120,8 +134,14 @@ show_progress() {
     local remaining=$((50 - completed))
     
     printf "\r${CYAN}[${NC}"
-    printf "%0.s█" $(seq 1 $completed)
-    printf "%0.s─" $(seq 1 $remaining)
+    if command -v seq &> /dev/null; then
+        printf "%0.s█" $(seq 1 $completed)
+        printf "%0.s─" $(seq 1 $remaining)
+    else
+        # Fallback for systems without seq
+        for ((i=1; i<=completed; i++)); do printf "█"; done
+        for ((i=1; i<=remaining; i++)); do printf "─"; done
+    fi
     printf "${CYAN}] ${WHITE}%d%% ${YELLOW}%s${NC}" $percentage "$description"
 }
 
@@ -222,6 +242,19 @@ install_package() {
 install_essential_packages() {
     print_step "Installing essential packages..."
     
+    if [[ "${DEMO_MODE:-}" == "true" ]]; then
+        local total=${#ESSENTIAL_PACKAGES[@]}
+        local current=0
+        
+        for package in "${ESSENTIAL_PACKAGES[@]}"; do
+            ((current++))
+            print_info "Installing $package ($current/$total)..."
+            sleep 0.2
+        done
+        print_success "Essential packages installation completed (demo)"
+        return 0
+    fi
+    
     local total=${#ESSENTIAL_PACKAGES[@]}
     local current=0
     
@@ -274,6 +307,19 @@ install_yay() {
 install_hyprland_packages() {
     print_step "Installing Hyprland and related packages..."
     
+    if [[ "${DEMO_MODE:-}" == "true" ]]; then
+        local total=${#HYPRLAND_PACKAGES[@]}
+        local current=0
+        
+        for package in "${HYPRLAND_PACKAGES[@]}"; do
+            ((current++))
+            print_info "Installing $package ($current/$total)..."
+            sleep 0.2
+        done
+        print_success "Hyprland packages installation completed (demo)"
+        return 0
+    fi
+    
     local total=${#HYPRLAND_PACKAGES[@]}
     local current=0
     
@@ -291,6 +337,19 @@ install_hyprland_packages() {
 # Install AUR packages
 install_aur_packages() {
     print_step "Installing AUR packages..."
+    
+    if [[ "${DEMO_MODE:-}" == "true" ]]; then
+        local total=${#AUR_PACKAGES[@]}
+        local current=0
+        
+        for package in "${AUR_PACKAGES[@]}"; do
+            ((current++))
+            print_info "Installing $package ($current/$total)..."
+            sleep 0.2
+        done
+        print_success "AUR packages installation completed (demo)"
+        return 0
+    fi
     
     if ! command -v yay &> /dev/null; then
         print_error "yay is not installed. Cannot install AUR packages."
