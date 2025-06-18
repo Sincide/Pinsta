@@ -129,28 +129,30 @@ show_progress() {
 check_system_compatibility() {
     print_step "Checking system compatibility..."
     
-    # Check if running on Arch Linux
-    if [[ ! -f /etc/arch-release ]]; then
-        print_error "This script is designed for Arch Linux only!"
-        exit 1
-    fi
-    
-    # Check if pacman is available
-    if ! command -v pacman &> /dev/null; then
-        print_error "Pacman package manager not found!"
-        exit 1
-    fi
-    
-    # Check if running as root
-    if [[ $EUID -eq 0 ]]; then
-        print_error "Do not run this script as root!"
-        exit 1
-    fi
-    
-    # Check internet connectivity
-    if ! ping -c 1 archlinux.org &> /dev/null; then
-        print_error "No internet connection detected!"
-        exit 1
+    # Demo mode detection (for testing environments)
+    if [[ "${DEMO_MODE:-}" == "true" ]] || [[ ! -f /etc/arch-release ]]; then
+        if [[ ! -f /etc/arch-release ]]; then
+            print_warning "Demo mode: Not running on Arch Linux - showing interface only"
+            DEMO_MODE=true
+        fi
+    else
+        # Check if pacman is available
+        if ! command -v pacman &> /dev/null; then
+            print_error "Pacman package manager not found!"
+            exit 1
+        fi
+        
+        # Check if running as root
+        if [[ $EUID -eq 0 ]]; then
+            print_error "Do not run this script as root!"
+            exit 1
+        fi
+        
+        # Check internet connectivity
+        if ! ping -c 1 archlinux.org &> /dev/null; then
+            print_error "No internet connection detected!"
+            exit 1
+        fi
     fi
     
     print_success "System compatibility check passed"
@@ -159,6 +161,13 @@ check_system_compatibility() {
 # Update system
 update_system() {
     print_step "Updating system packages..."
+    
+    if [[ "${DEMO_MODE:-}" == "true" ]]; then
+        print_info "Demo mode: Simulating system update..."
+        sleep 2
+        print_success "System updated successfully (demo)"
+        return 0
+    fi
     
     if sudo pacman -Syu --noconfirm; then
         print_success "System updated successfully"
@@ -172,6 +181,13 @@ update_system() {
 install_package() {
     local package=$1
     local package_manager=${2:-"pacman"}
+    
+    if [[ "${DEMO_MODE:-}" == "true" ]]; then
+        print_info "Demo mode: Simulating installation of $package..."
+        sleep 0.5
+        print_success "Installed $package (demo)"
+        return 0
+    fi
     
     if [[ $package_manager == "pacman" ]]; then
         if pacman -Qi "$package" &> /dev/null; then
@@ -223,6 +239,13 @@ install_essential_packages() {
 # Install yay AUR helper
 install_yay() {
     print_step "Installing yay AUR helper..."
+    
+    if [[ "${DEMO_MODE:-}" == "true" ]]; then
+        print_info "Demo mode: Simulating yay installation..."
+        sleep 2
+        print_success "yay installed successfully (demo)"
+        return 0
+    fi
     
     if command -v yay &> /dev/null; then
         print_info "yay is already installed"
@@ -324,6 +347,14 @@ setup_configurations() {
 # Enable services
 enable_services() {
     print_step "Enabling system services..."
+    
+    if [[ "${DEMO_MODE:-}" == "true" ]]; then
+        print_info "Demo mode: Simulating service enablement..."
+        sleep 1
+        print_success "Audio services enabled (demo)"
+        print_success "Services enabled successfully (demo)"
+        return 0
+    fi
     
     # Enable pipewire services
     systemctl --user enable pipewire pipewire-pulse wireplumber
@@ -445,25 +476,44 @@ show_system_info() {
     print_header
     echo -e "${WHITE}System Information:${NC}"
     echo
-    echo -e "${CYAN}OS:${NC} $(cat /etc/os-release | grep PRETTY_NAME | cut -d'"' -f2)"
-    echo -e "${CYAN}Kernel:${NC} $(uname -r)"
-    echo -e "${CYAN}Architecture:${NC} $(uname -m)"
-    echo -e "${CYAN}Shell:${NC} $SHELL"
-    echo -e "${CYAN}User:${NC} $USER"
-    echo -e "${CYAN}Home:${NC} $HOME"
-    echo
-    echo -e "${WHITE}Package Managers:${NC}"
-    command -v pacman &> /dev/null && echo -e "${GREEN}${CHECK_MARK} pacman${NC}" || echo -e "${RED}${CROSS_MARK} pacman${NC}"
-    command -v yay &> /dev/null && echo -e "${GREEN}${CHECK_MARK} yay${NC}" || echo -e "${RED}${CROSS_MARK} yay${NC}"
-    echo
-    echo -e "${WHITE}Essential Packages Status:${NC}"
-    for package in "${HYPRLAND_PACKAGES[@]}"; do
-        if pacman -Qi "$package" &> /dev/null; then
-            echo -e "${GREEN}${CHECK_MARK} $package${NC}"
-        else
-            echo -e "${RED}${CROSS_MARK} $package${NC}"
-        fi
-    done
+    
+    if [[ "${DEMO_MODE:-}" == "true" ]]; then
+        echo -e "${CYAN}OS:${NC} Arch Linux (Demo Mode)"
+        echo -e "${CYAN}Kernel:${NC} 6.6.10-arch1-1"
+        echo -e "${CYAN}Architecture:${NC} x86_64"
+        echo -e "${CYAN}Shell:${NC} /bin/bash"
+        echo -e "${CYAN}User:${NC} $USER"
+        echo -e "${CYAN}Home:${NC} $HOME"
+        echo
+        echo -e "${WHITE}Package Managers:${NC}"
+        echo -e "${RED}${CROSS_MARK} pacman (demo mode)${NC}"
+        echo -e "${RED}${CROSS_MARK} yay (demo mode)${NC}"
+        echo
+        echo -e "${WHITE}Essential Packages Status (Demo):${NC}"
+        for package in "${HYPRLAND_PACKAGES[@]}"; do
+            echo -e "${RED}${CROSS_MARK} $package (not installed - demo)${NC}"
+        done
+    else
+        echo -e "${CYAN}OS:${NC} $(cat /etc/os-release | grep PRETTY_NAME | cut -d'"' -f2)"
+        echo -e "${CYAN}Kernel:${NC} $(uname -r)"
+        echo -e "${CYAN}Architecture:${NC} $(uname -m)"
+        echo -e "${CYAN}Shell:${NC} $SHELL"
+        echo -e "${CYAN}User:${NC} $USER"
+        echo -e "${CYAN}Home:${NC} $HOME"
+        echo
+        echo -e "${WHITE}Package Managers:${NC}"
+        command -v pacman &> /dev/null && echo -e "${GREEN}${CHECK_MARK} pacman${NC}" || echo -e "${RED}${CROSS_MARK} pacman${NC}"
+        command -v yay &> /dev/null && echo -e "${GREEN}${CHECK_MARK} yay${NC}" || echo -e "${RED}${CROSS_MARK} yay${NC}"
+        echo
+        echo -e "${WHITE}Essential Packages Status:${NC}"
+        for package in "${HYPRLAND_PACKAGES[@]}"; do
+            if pacman -Qi "$package" &> /dev/null; then
+                echo -e "${GREEN}${CHECK_MARK} $package${NC}"
+            else
+                echo -e "${RED}${CROSS_MARK} $package${NC}"
+            fi
+        done
+    fi
 }
 
 # Cleanup function
